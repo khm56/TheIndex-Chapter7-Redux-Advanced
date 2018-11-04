@@ -1,6 +1,8 @@
 import React, { Component } from "react";
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Switch, Route, Redirect, withRouter } from "react-router-dom";
 import axios from "axios";
+import { connect } from "react-redux";
+import * as actionCreators from "./store/actions/index";
 
 // Components
 import Sidebar from "./Sidebar";
@@ -13,46 +15,39 @@ const instance = axios.create({
 });
 
 class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      authors: [],
-      loading: true
-    };
-  }
-
-  fetchAllAuthors() {
-    return instance.get("/api/authors/").then(res => res.data);
-  }
-
+  // constructor(props) {
+  //   super(props);
+  //   this.state = {
+  //     authors: [],
+  //     loading: true
+  //   };
+  // }
+  //
+  // fetchAllAuthors() {
+  //   return instance.get("/api/authors/").then(res => res.data);
+  // }
+  //
   componentDidMount() {
-    this.fetchAllAuthors()
-      .then(authors =>
-        this.setState({
-          authors: authors,
-          loading: false
-        })
-      )
-      .catch(err => console.error(err));
+    this.props.fetchAuthors();
   }
 
   getView() {
-    if (this.state.loading) {
-      return <Loading />;
-    } else {
-      return (
-        <Switch>
-          <Redirect exact from="/" to="/authors" />
-          <Route path="/authors/:authorID" component={AuthorDetail} />
-          <Route
-            path="/authors/"
-            render={props => (
-              <AuthorsList {...props} authors={this.state.authors} />
-            )}
-          />
-        </Switch>
-      );
-    }
+    // if (this.state.loading) {
+    //   return <Loading />;
+    // } else {
+    return (
+      <Switch>
+        <Redirect exact from="/" to="/authors" />
+        <Route path="/authors/:authorID" component={AuthorDetail} />
+        <Route
+          path="/authors/"
+          render={props => (
+            <AuthorsList {...props} authors={this.props.authors} />
+          )}
+        />
+      </Switch>
+    );
+    // }
   }
 
   render() {
@@ -69,4 +64,20 @@ class App extends Component {
   }
 }
 
-export default App;
+const mapStateToProps = state => {
+  return {
+    authors: state.rootauthors.authors
+  };
+};
+
+const mapDispatchToProps = dispatch => {
+  return {
+    fetchAuthors: () => dispatch(actionCreators.fetchAuthors())
+  };
+};
+export default withRouter(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(App)
+);
